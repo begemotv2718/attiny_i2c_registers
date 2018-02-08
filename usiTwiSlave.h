@@ -43,7 +43,10 @@ Change Activity:
 ********************************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
 
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 
 /********************************************************************************
@@ -83,6 +86,19 @@ bool    usiTwiDataInTransmitBuffer(void);
 #if ( TWI_TX_BUFFER_SIZE & TWI_TX_BUFFER_MASK )
 #  error TWI TX buffer size is not a power of 2
 #endif
+
+/****************************************
+ * debug defs
+ * **************************************/
+
+#define PORT_DBG  PORTB
+#define P_DBG1    PB3
+#define P_DBG2    PB4
+#define DDR_DBG_SET()   do {DDRB |=  (1<<P_DBG1)|(1<<P_DBG2);} while(0)
+#define DBG_SET1() do{PORT_DBG |= (1<<P_DBG1);}while(0)
+#define DBG_CLEAR1() do{PORT_DBG &= ~(1<<P_DBG1);}while(0)
+#define DBG_SET2() do{PORT_DBG |= (1<<P_DBG2);}while(0)
+#define DBG_CLEAR2() do{PORT_DBG &= ~(1<<P_DBG2);}while(0)
 
 
 

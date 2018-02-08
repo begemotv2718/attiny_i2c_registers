@@ -1,7 +1,7 @@
 #
 # Project name
 TARG=test_fw
-F_CPU = 11059200
+F_CPU = 8000000
 
 CC = avr-gcc
 OBJCOPY = avr-objcopy
@@ -9,18 +9,18 @@ DASM = avr-objdump
 SIZE = avr-size
 
 FLASHTOOL = avrdude
-FLASHDEV = usbasp
+FLASHDEV = buspirate
 FLASHPORT = /dev/ttyUSB0
 
-SRCS =  
+SRCS = usiTwiSlave.c main.c
 
 OBJS = $(SRCS:.c=.o)
 
-MCU=attiny45
+MCU=attiny25
 # Compiler flags, F_CPU define MCU frequency
-CFLAGS +=  -std=c99 -mmcu=$(MCU) -Wall -g -Os -Werror -lm  -mcall-prologues  -DF_CPU=$(F_CPU)  -Wl,-u,vfprintf -lprintf_flt
+CFLAGS +=  -std=c99 -mmcu=$(MCU) -Wall -g -Os -Werror -lm  -mcall-prologues  -DF_CPU=$(F_CPU) 
 #CFLAGS = -mmcu=$(MCU) -Wall -g -Os  -lm  -mcall-prologues  -DF_CPU=$(F_CPU) -DDEBUG -Wl,-u,vfprintf -lprintf_flt
-LDFLAGS = -mmcu=$(MCU)  -Wall -g -Os  -Werror -Wl,-u,vfprintf
+LDFLAGS = -mmcu=$(MCU)  -Wall -g -Os  -Werror 
 
 all: $(TARG)
 

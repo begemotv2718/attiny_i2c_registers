@@ -322,6 +322,7 @@ usiTwiSlaveInit(
 
   // Set SDA as input
   DDR_USI &= ~( 1 << PORT_USI_SDA );
+  DDR_USI &= ~( 1 << PORT_USI_SCL ); //????
 
   USICR =
        // enable Start Condition Interrupt
@@ -338,7 +339,14 @@ usiTwiSlaveInit(
 
   // clear all interrupt flags and reset overflow counter
 
-  USISR = ( 1 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | ( 1 << USIDC );
+  USISR = ( 1 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | ( 1 << USIDC ) |(1<<USISIF);
+
+  DDR_DBG_SET();
+  DBG_SET1();
+  sei();
+
+
+ 
 
 } // end usiTwiSlaveInit
 
@@ -424,12 +432,21 @@ usiTwiDataInReceiveBuffer(
 
 ISR( USI_START_VECTOR )
 {
-
+  DDR_DBG_SET();
+  DBG_SET1();
   // set default starting conditions for new TWI package
   overflowState = USI_SLAVE_CHECK_ADDRESS;
+  DBG_CLEAR1();
+  DBG_SET2();
 
   // set SDA as input
   DDR_USI &= ~( 1 << PORT_USI_SDA );
+
+
+  //DBG_CLEAR2();
+
+  //DBG_SET1();
+  //USISR =  ( 1 << USI_START_COND_INT);
 
   // wait for SCL to go low to ensure the Start Condition has completed (the
   // start detector will hold SCL low ) - if a Stop Condition arises then leave
@@ -442,6 +459,7 @@ ISR( USI_START_VECTOR )
        // and SDA is low
        !( ( PIN_USI & ( 1 << PIN_USI_SDA ) ) )
   );
+  //DBG_CLEAR1();
 
 
   if ( !( PIN_USI & ( 1 << PIN_USI_SDA ) ) )
@@ -489,7 +507,7 @@ ISR( USI_START_VECTOR )
        ( 1 << USIPF ) |( 1 << USIDC ) |
        // set USI to sample 8 bits (count 16 external SCL pin toggles)
        ( 0x0 << USICNT0);
-
+  //DBG_CLEAR1();
 } // end ISR( USI_START_VECTOR )
 
 
@@ -507,6 +525,8 @@ Only disabled when waiting for a new Start Condition.
 ISR( USI_OVERFLOW_VECTOR )
 {
 
+  DBG_SET1();
+  DBG_SET2();
   switch ( overflowState )
   {
 
@@ -515,6 +535,7 @@ ISR( USI_OVERFLOW_VECTOR )
     case USI_SLAVE_CHECK_ADDRESS:
       if ( ( USIDR == 0 ) || ( ( USIDR >> 1 ) == slaveAddress) )
       {
+       //  DBG_SET1();
          // callback
          if(_onTwiDataRequest) _onTwiDataRequest();
          if ( USIDR & 0x01 )
@@ -526,6 +547,7 @@ ISR( USI_OVERFLOW_VECTOR )
           overflowState = USI_SLAVE_REQUEST_DATA;
         } // end if
         SET_USI_TO_SEND_ACK( );
+        //DBG_CLEAR1();
       }
       else
       {
@@ -591,7 +613,8 @@ ISR( USI_OVERFLOW_VECTOR )
       break;
 
   } // end switch
-
+   DBG_CLEAR2();
+   DBG_CLEAR1();
 } // end ISR( USI_OVERFLOW_VECTOR )
 
 #endif /* TEST */

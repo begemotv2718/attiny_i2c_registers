@@ -3,3 +3,7 @@
 *.size
 *.hex
 *.pdf
+*.asm
+cscope.out
+*.bin
+*.lst
