@@ -19,7 +19,5 @@ int main(void)
     DBG_CLEAR1();
     while(1)
     {
-       data = usiTwiReceiveByte();
-       usiTwiTransmitByte(data);
     }
 }

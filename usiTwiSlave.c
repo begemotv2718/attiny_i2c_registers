@@ -234,7 +234,9 @@ typedef enum
   USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA = 0x02,
   USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA   = 0x03,
   USI_SLAVE_REQUEST_DATA                 = 0x04,
-  USI_SLAVE_GET_DATA_AND_SEND_ACK        = 0x05
+  USI_SLAVE_GET_DATA_AND_SEND_ACK        = 0x05,
+  USI_SLAVE_REQUEST_REGISTER             = 0x06,
+  USI_SLAVE_GET_REGISTER_AND_SEND_ACK    = 0x07
 } overflowState_t;
 
 
@@ -248,14 +250,8 @@ typedef enum
 static uint8_t                  slaveAddress;
 static volatile overflowState_t overflowState;
 
-
-static uint8_t          rxBuf[ TWI_RX_BUFFER_SIZE ];
-static volatile uint8_t rxHead;
-static volatile uint8_t rxTail;
-
-static uint8_t          txBuf[ TWI_TX_BUFFER_SIZE ];
-static volatile uint8_t txHead;
-static volatile uint8_t txTail;
+static uint8_t          registerFile[TWI_REG_BUFFER_SIZE];
+static volatile uint8_t currentRegister=0;
 
 // data requested callback
 void (*_onTwiDataRequest)(void);
@@ -269,20 +265,6 @@ void (*_onTwiDataRequest)(void);
 ********************************************************************************/
 
 
-
-// flushes the TWI buffers
-
-static
-void
-flushTwiBuffers(
-  void
-)
-{
-  rxTail = 0;
-  rxHead = 0;
-  txTail = 0;
-  txHead = 0;
-} // end flushTwiBuffers
 
 
 
@@ -302,7 +284,7 @@ usiTwiSlaveInit(
 )
 {
 
-  flushTwiBuffers( );
+  currentRegister = 0;
 
   slaveAddress = ownAddress;
 
@@ -351,76 +333,37 @@ usiTwiSlaveInit(
 } // end usiTwiSlaveInit
 
 
-bool usiTwiDataInTransmitBuffer(void)
+void usiTwiSetRegister(uint8_t reg, uint8_t value)
 {
 
   // return 0 (false) if the receive buffer is empty
-  return txHead != txTail;
+  if(reg<TWI_REG_BUFFER_SIZE){
+    registerFile[reg]=value;
+  }
 
-} // end usiTwiDataInTransmitBuffer
+} // end usiTwiSetRegister
 
 
 // put data in the transmission buffer, wait if buffer is full
 
-void
-usiTwiTransmitByte(
-  uint8_t data
-)
-{
-
-  uint8_t tmphead;
-
-  // calculate buffer index
-  tmphead = ( txHead + 1 ) & TWI_TX_BUFFER_MASK;
-
-  // wait for free space in buffer
-  while ( tmphead == txTail );
-
-  // store data in buffer
-  txBuf[ tmphead ] = data;
-
-  // store new index
-  txHead = tmphead;
-
-} // end usiTwiTransmitByte
-
-
-
-
-
-// return a byte from the receive buffer, wait if buffer is empty
-
 uint8_t
-usiTwiReceiveByte(
-  void
+usiTwiReadRegister(
+  uint8_t reg
 )
 {
 
-  // wait for Rx data
-  while ( rxHead == rxTail );
-
-  // calculate buffer index
-  rxTail = ( rxTail + 1 ) & TWI_RX_BUFFER_MASK;
-
-  // return data from the buffer.
-  return rxBuf[ rxTail ];
-
-} // end usiTwiReceiveByte
-
+  if(reg<TWI_REG_BUFFER_SIZE)
+  {
+    return registerFile[reg];
+  }
+  else
+  {
+    return 0xff;
+  }
+} // end usiTwiReadRegister
 
 
-// check if there is data in the receive buffer
 
-bool
-usiTwiDataInReceiveBuffer(
-  void
-)
-{
-
-  // return 0 (false) if the receive buffer is empty
-  return rxHead != rxTail;
-
-} // end usiTwiDataInReceiveBuffer
 
 
 
@@ -544,7 +487,7 @@ ISR( USI_OVERFLOW_VECTOR )
         }
         else
         {
-          overflowState = USI_SLAVE_REQUEST_DATA;
+          overflowState = USI_SLAVE_REQUEST_REGISTER;
         } // end if
         SET_USI_TO_SEND_ACK( );
         //DBG_CLEAR1();
@@ -571,15 +514,16 @@ ISR( USI_OVERFLOW_VECTOR )
     // next USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA
     case USI_SLAVE_SEND_DATA:
       // Get data from Buffer
-      if ( txHead != txTail )
+      if ( currentRegister<TWI_REG_BUFFER_SIZE )
       {
-        txTail = ( txTail + 1 ) & TWI_TX_BUFFER_MASK;
-        USIDR = txBuf[ txTail ];
+        USIDR = registerFile[ currentRegister ];
+        currentRegister++;
       }
       else
       {
         // the buffer is empty
         SET_USI_TO_TWI_START_CONDITION_MODE( );
+        currentRegister = 0;
         return;
       } // end if
       overflowState = USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA;
@@ -603,10 +547,28 @@ ISR( USI_OVERFLOW_VECTOR )
     // copy data from USIDR and send ACK
     // next USI_SLAVE_REQUEST_DATA
     case USI_SLAVE_GET_DATA_AND_SEND_ACK:
+      // put data into register
+      if(currentRegister<TWI_REG_BUFFER_SIZE)
+      {
+        registerFile[currentRegister]= USIDR;
+        currentRegister++;
+      }
+      // next USI_SLAVE_REQUEST_DATA
+      overflowState = USI_SLAVE_REQUEST_DATA;
+      SET_USI_TO_SEND_ACK( );
+      break;
+
+    case USI_SLAVE_REQUEST_REGISTER:
+      overflowState = USI_SLAVE_GET_REGISTER_AND_SEND_ACK;
+      SET_USI_TO_READ_DATA( );
+      break;
+
+    // copy data from USIDR and send ACK
+    // next USI_SLAVE_REQUEST_DATA
+    case USI_SLAVE_GET_REGISTER_AND_SEND_ACK:
       // put data into buffer
       // Not necessary, but prevents warnings
-      rxHead = ( rxHead + 1 ) & TWI_RX_BUFFER_MASK;
-      rxBuf[ rxHead ] = USIDR;
+      currentRegister = USIDR;
       // next USI_SLAVE_REQUEST_DATA
       overflowState = USI_SLAVE_REQUEST_DATA;
       SET_USI_TO_SEND_ACK( );
