@@ -1,3 +1,11 @@
-Implementation of smbus i2c registers on attiny mcu. 
+Implementation of smbus i2c slave with registers on attiny mcu. 
 
-NOT SUITABLE TO ANY PURPOSE CURRENTLY. EXPERIMENTS IN PROGRESS!
+Write register: view from master (slave replies in brackets)
+START Addr Wr [ACK] RegNum [ACK] Value [ACK] STOP
+
+Read register: view from master
+
+START Addr Wr [ACK] RegNum [ACK] START Addr Rd [RegValue] NAK STOP
+
+Seems to work for slow transfers (<5kHz).
+

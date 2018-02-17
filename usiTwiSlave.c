@@ -4,6 +4,7 @@ USI TWI Slave driver.
 
 Created by Donald R. Blake. donblake at worldnet.att.net
 Adapted by Jochen Toppe, jochen.toppe at jtoee.com
+Smbus registers: begemotv2718@gmail.com
 
 ---------------------------------------------------------------------------------
 
@@ -30,6 +31,7 @@ Change Activity:
   26 Apr 2007  Fixed ACK of slave address on a read.
   04 Jul 2007  Fixed USISIF in ATtiny45 def
   12 Dev 2009  Added callback functions for data requests
+  17 Feb 2017  Implementation of state machine for "register file"
 
 ********************************************************************************/
 
