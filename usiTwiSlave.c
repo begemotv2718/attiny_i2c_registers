@@ -326,7 +326,6 @@ usiTwiSlaveInit(
 
   USISR = ( 1 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | ( 1 << USIDC ) |(1<<USISIF);
 
-  DDR_DBG_SET();
   sei();
 
 
@@ -378,7 +377,8 @@ usiTwiReadRegister(
 ISR( USI_START_VECTOR )
 {
   cli();
-//  softuart_send('s');
+  
+  //softuart_send('s');
   // set default starting conditions for new TWI package
   overflowState = USI_SLAVE_CHECK_ADDRESS;
 
@@ -447,7 +447,7 @@ ISR( USI_START_VECTOR )
        ( 1 << USIPF ) |( 1 << USIDC ) |
        // set USI to sample 8 bits (count 16 external SCL pin toggles)
        ( 0x0 << USICNT0);
- // softuart_send('f');
+  //softuart_send('f');
   sei();
 } // end ISR( USI_START_VECTOR )
 

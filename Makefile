@@ -12,7 +12,7 @@ FLASHTOOL = avrdude
 FLASHDEV = buspirate
 FLASHPORT = /dev/ttyUSB0
 
-SRCS = softuart.c usiTwiSlave.c main.c
+SRCS = adc.c softuart.c usiTwiSlave.c main.c
 
 OBJS = $(SRCS:.c=.o)
 
