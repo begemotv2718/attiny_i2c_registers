@@ -12,13 +12,13 @@ FLASHTOOL = avrdude
 FLASHDEV = buspirate
 FLASHPORT = /dev/ttyUSB0
 
-SRCS = usiTwiSlave.c main.c
+SRCS = softuart.c usiTwiSlave.c main.c
 
 OBJS = $(SRCS:.c=.o)
 
 MCU=attiny25
 # Compiler flags, F_CPU define MCU frequency
-CFLAGS +=  -std=c99 -mmcu=$(MCU) -Wall -g -Os -Werror -lm  -mcall-prologues  -DF_CPU=$(F_CPU) 
+CFLAGS +=   -mmcu=$(MCU) -Wall -g -Os -Werror -lm  -mcall-prologues  -DF_CPU=$(F_CPU) 
 #CFLAGS = -mmcu=$(MCU) -Wall -g -Os  -lm  -mcall-prologues  -DF_CPU=$(F_CPU) -DDEBUG -Wl,-u,vfprintf -lprintf_flt
 LDFLAGS = -mmcu=$(MCU)  -Wall -g -Os  -Werror 
 

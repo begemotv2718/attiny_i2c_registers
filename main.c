@@ -1,22 +1,19 @@
 
 #include "usiTwiSlave.h"
 #include <util/delay.h>
+#include "softuart.h"
 
 uint8_t data;
 
 int main(void)
 {
+    softuart_init();
+    _delay_ms(1);
+    softuart_send('a');
+    _delay_ms(1);
+    softuart_send('b');
     usiTwiSlaveInit(0x33);
 
-    _delay_ms(2);
-    DBG_SET2();
-    _delay_ms(2);
-    DBG_CLEAR2();
-    _delay_ms(2);
-    DBG_SET2();
-    _delay_ms(2);
-    DBG_CLEAR2();
-    DBG_CLEAR1();
     while(1)
     {
     }

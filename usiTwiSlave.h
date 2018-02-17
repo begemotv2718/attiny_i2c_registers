@@ -83,11 +83,18 @@ uint8_t  usiTwiReadRegister(uint8_t reg);
 #define PORT_DBG  PORTB
 #define P_DBG1    PB3
 #define P_DBG2    PB4
-#define DDR_DBG_SET()   do {DDRB |=  (1<<P_DBG1)|(1<<P_DBG2);} while(0)
+#define P_DBG0    PB1
+#define DDR_DBG_SET()   do {DDRB |= (1<<P_DBG0)|(1<<P_DBG1)|(1<<P_DBG2);} while(0)
+#define DBG_SET0() do{PORT_DBG |= (1<<P_DBG0);}while(0)
+#define DBG_CLEAR0() do{PORT_DBG &= ~(1<<P_DBG0);} while(0)
 #define DBG_SET1() do{PORT_DBG |= (1<<P_DBG1);}while(0)
 #define DBG_CLEAR1() do{PORT_DBG &= ~(1<<P_DBG1);}while(0)
 #define DBG_SET2() do{PORT_DBG |= (1<<P_DBG2);}while(0)
 #define DBG_CLEAR2() do{PORT_DBG &= ~(1<<P_DBG2);}while(0)
+#define DBG_WRITE3BIT(x) do{ \
+  if((x)&0x01){DBG_SET0();}else{DBG_CLEAR0();} \
+  if((x)&(0x02)){DBG_SET1();}else{DBG_CLEAR1();} \
+  if((x)&(0x04)){DBG_SET2();}else{DBG_CLEAR2();} }while(0)
 
 
 
