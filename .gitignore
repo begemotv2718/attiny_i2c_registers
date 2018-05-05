@@ -7,3 +7,5 @@
 cscope.out
 *.bin
 *.lst
+attiny_i2c/*cache.lib
+attiny_i2c/*bak
