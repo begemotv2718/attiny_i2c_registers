@@ -253,8 +253,8 @@ typedef enum
 static uint8_t                  slaveAddress;
 static volatile overflowState_t overflowState;
 
-static uint8_t          registerFile[TWI_REG_BUFFER_SIZE];
-static volatile uint8_t currentRegister=0;
+volatile uint8_t          registerFile[TWI_REG_BUFFER_SIZE];
+volatile uint8_t currentRegister=0;
 
 // data requested callback
 void (*_onTwiDataRequest)(void);

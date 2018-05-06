@@ -3,7 +3,7 @@
 
 //#define delay_half_bit()  delay_us(1000000/(115200*2))
 #define PORT_UART PORTB
-#define PIN_UART  3
+#define PIN_UART  1
 #define DDR_UART DDRB
 
 

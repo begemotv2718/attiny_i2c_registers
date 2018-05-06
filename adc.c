@@ -7,6 +7,7 @@
 
 void initADC(void)
 {
+  DDRB  &= ~(1<<PB4); // Set port to input
   ADMUX =
             (1 << ADLAR) |     // left shift result
             (0 << REFS1) |     // Sets ref. voltage to VCC
@@ -22,7 +23,7 @@ void initADC(void)
             (1 << ADSC)  |     // Start conversion
             (1 << ADIE)  |     // Enable interrupt
             (1 << ADPS2) |     // Clock division factor  
-            (0 << ADPS1) |     // is 2^(ADPS[2:0]) 
+            (1 << ADPS1) |     // is 2^(ADPS[2:0]) 
             (0 << ADPS0) ;      // 
   ADCSRB =
             (0 << ADTS2) |     // Free running triggering
@@ -36,8 +37,13 @@ ISR(ADC_vect)
   cli();
   usiTwiSetRegister(0x03,ADCH);
   usiTwiSetRegister(0x04,ADCL);
+  usiTwiSetRegister(0x05,int_count);
+  usiTwiSetRegister(0x06,50);
   if(int_count>128){
-    //softuart_send('D');
+    uint8_t val=ADCH;
+    softuart_send('0'+((val>>6)&0x07));
+    softuart_send('0'+((val>>3)&0x07));
+    softuart_send('0'+((val)&0x07));
     int_count=0;
   }
   else

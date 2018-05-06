@@ -5,6 +5,8 @@
 #include "adc.h"
 #include <avr/wdt.h>
 
+#define PIN_LED1 3
+
 inline void send_hex_digit(uint8_t data)
 {
   data = data&0x0f;
@@ -18,6 +20,17 @@ inline void send_hex_digit(uint8_t data)
   }
 }
 
+inline void status_led(void)
+{
+  if(usiTwiReadRegister(0x07)>0)
+  {
+    PORTB |= (1<<PIN_LED1);
+  }
+  else
+  {
+    PORTB &= ~(1<<PIN_LED1);
+  }
+}
 
 int main(void)
 {
@@ -40,11 +53,13 @@ int main(void)
     usiTwiSlaveInit(0x33);
     sei();
     initADC();
+    DDRB |= (1<<PIN_LED1); //LED PIN
 
 
     while(1)
     {
       _delay_ms(1);
+      status_led();
       //softuart_send('x');
     }
 }
